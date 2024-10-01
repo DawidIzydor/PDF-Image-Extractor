@@ -39,9 +39,15 @@ def extract_images_from_pdf(pdf_path, page_number, output_folder):
         smask = img[1]
         base_image = pdf_document.extract_image(xref)
 
-        pix1 = fitz.Pixmap(pdf_document.extract_image(xref)["image"]) 
-        mask = fitz.Pixmap(pdf_document.extract_image(smask)["image"])
-        pix = fitz.Pixmap(pix1, mask)    
+        pix1 = fitz.Pixmap(base_image["image"])
+        
+        try:
+            mask = fitz.Pixmap(pdf_document.extract_image(smask)["image"])
+            pix = fitz.Pixmap(pix1, mask)  # Combine image with mask
+            print(f"Mask found and applied for image {i + 1}")
+        except:
+            pix = pix1  # Use the base image without mask
+            print(f"Mask not found for image {i + 1}, saving without mask")
         
         # Prepend the page number to the image filename
         image_filename = os.path.join(output_folder, f"{page_number + 1}_image_{i + 1}.png")
@@ -49,6 +55,7 @@ def extract_images_from_pdf(pdf_path, page_number, output_folder):
         pix.save(image_filename)
         
         print(f"Saved image to {image_filename}")
+
 
 def extract_images_range_from_pdf(pdf_path, page_number, page_number_end, output_folder):
     for i in range(page_number, page_number_end):
